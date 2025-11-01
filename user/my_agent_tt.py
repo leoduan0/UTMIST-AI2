@@ -19,6 +19,7 @@ Check out these ttnn tutorials here for how to get started with using ttnn APIs:
 - ...
 """
 
+
 class MLPPolicy(nn.Module):
     def __init__(self, obs_dim, action_dim, hidden_dim=64):
         """
@@ -67,9 +68,21 @@ class TTMLPPolicy(nn.Module):
             layout=ttnn.TILE_LAYOUT,
         )
 
-        self.fc1_b = ttnn.from_torch(state_dict["fc1.bias"], device=mesh_device, memory_config=ttnn.DRAM_MEMORY_CONFIG)
-        self.fc2_b = ttnn.from_torch(state_dict["fc2.bias"], device=mesh_device, memory_config=ttnn.DRAM_MEMORY_CONFIG)
-        self.fc3_b = ttnn.from_torch(state_dict["fc3.bias"], device=mesh_device, memory_config=ttnn.DRAM_MEMORY_CONFIG)
+        self.fc1_b = ttnn.from_torch(
+            state_dict["fc1.bias"],
+            device=mesh_device,
+            memory_config=ttnn.DRAM_MEMORY_CONFIG,
+        )
+        self.fc2_b = ttnn.from_torch(
+            state_dict["fc2.bias"],
+            device=mesh_device,
+            memory_config=ttnn.DRAM_MEMORY_CONFIG,
+        )
+        self.fc3_b = ttnn.from_torch(
+            state_dict["fc3.bias"],
+            device=mesh_device,
+            memory_config=ttnn.DRAM_MEMORY_CONFIG,
+        )
 
     def forward(self, obs: torch.Tensor) -> torch.Tensor:
         print("Running TT forward pass!")
@@ -90,15 +103,17 @@ class TTMLPPolicy(nn.Module):
         return tt_out
 
 
-def check_pcc(tensor1: torch.Tensor, tensor2: torch.Tensor, threshold: float = 0.99) -> bool:
+def check_pcc(
+    tensor1: torch.Tensor, tensor2: torch.Tensor, threshold: float = 0.99
+) -> bool:
     """
     Check if the Pearson correlation coefficient (PCC) between two tensors exceeds a given threshold.
-    
+
     Args:
         tensor1 (torch.Tensor): First tensor.
         tensor2 (torch.Tensor): Second tensor.
         threshold (float): Minimum acceptable correlation (default: 0.99).
-    
+
     Returns:
         bool: True if PCC >= threshold, else False.
     """
@@ -114,7 +129,9 @@ def check_pcc(tensor1: torch.Tensor, tensor2: torch.Tensor, threshold: float = 0
     t1_mean = t1.mean()
     t2_mean = t2.mean()
     numerator = torch.sum((t1 - t1_mean) * (t2 - t2_mean))
-    denominator = torch.sqrt(torch.sum((t1 - t1_mean) ** 2) * torch.sum((t2 - t2_mean) ** 2))
+    denominator = torch.sqrt(
+        torch.sum((t1 - t1_mean) ** 2) * torch.sum((t2 - t2_mean) ** 2)
+    )
     pcc = numerator / denominator
 
     # Check if it exceeds threshold
@@ -122,13 +139,13 @@ def check_pcc(tensor1: torch.Tensor, tensor2: torch.Tensor, threshold: float = 0
 
 
 def test_mlp_policy():
-    
+
     # Open the device (since we are only using single devices N150 cards, your mesh shape will be 1x1)
-    mesh_device = ttnn.open_mesh_device(ttnn.MeshShape(1,1))
-    
+    mesh_device = ttnn.open_mesh_device(ttnn.MeshShape(1, 1))
+
     # Dimensions based on our custom RL environment
     batch_size = 1
-    action_dim = 10 
+    action_dim = 10
     hidden_dim = 64
     obs_dim = 64
 
@@ -149,6 +166,7 @@ def test_mlp_policy():
         print("✅ PCC check passed!")
     else:
         print("❌ PCC below threshold.")
+
 
 if __name__ == "__main__":
     test_mlp_policy()

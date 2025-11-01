@@ -3,6 +3,7 @@ from typing import Optional
 from supabase import create_client
 from datetime import datetime
 
+
 def elo_update(elo1, elo2, result, k=32):
     """
     Update two ELO scores based on result.
@@ -26,16 +27,27 @@ def get_participant_elo(username: str) -> int:
     url = os.environ["SUPABASE_URL"]
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     if not key:
-        raise RuntimeError("Missing Supabase key in environment (SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY)")
+        raise RuntimeError(
+            "Missing Supabase key in environment (SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY)"
+        )
 
     client = create_client(url, key)
 
-    resp = client.table("ai2_leaderboard").select("elo").eq("username", username).single().execute()
+    resp = (
+        client.table("ai2_leaderboard")
+        .select("elo")
+        .eq("username", username)
+        .single()
+        .execute()
+    )
     if getattr(resp, "data", None) and "elo" in resp.data:
         return resp.data["elo"]
     raise ValueError(f"No ELO found for user: {username}")
 
-def update_participant_elo(username: str, elo: int, match_result: Optional[str] = None) -> None:
+
+def update_participant_elo(
+    username: str, elo: int, match_result: Optional[str] = None
+) -> None:
     """Update ELO for a participant in the ai2_leaderboard table.
 
     match_result is accepted for compatibility but not used here.
@@ -43,12 +55,18 @@ def update_participant_elo(username: str, elo: int, match_result: Optional[str] 
     url = os.environ["SUPABASE_URL"]
     key = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
     client = create_client(url, key)
-    resp = client.table("ai2_leaderboard").update({"elo": elo}).eq("username", username).execute()
+    resp = (
+        client.table("ai2_leaderboard")
+        .update({"elo": elo})
+        .eq("username", username)
+        .execute()
+    )
 
     if hasattr(resp, "error") and resp.error:
         # supabase-py may return error object/message
         raise RuntimeError(str(resp.error))
-    
+
+
 def upload_video_to_supabase(video_path, agent1_username, agent2_username):
     """
     Uploads the video at video_path to the 'battle-videos' bucket in Supabase Storage,
@@ -60,12 +78,16 @@ def upload_video_to_supabase(video_path, agent1_username, agent2_username):
     try:
         from supabase import create_client, Client
     except ImportError:
-        raise ImportError("You must install supabase-py to use this feature: pip install supabase")
+        raise ImportError(
+            "You must install supabase-py to use this feature: pip install supabase"
+        )
 
     supabase_url = os.getenv("SUPABASE_URL")
     supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     if not supabase_url or not supabase_key:
-        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment variables.")
+        raise RuntimeError(
+            "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in environment variables."
+        )
 
     client: Client = create_client(supabase_url, supabase_key)
     time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
