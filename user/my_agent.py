@@ -46,6 +46,17 @@ class SubmittedAgent(Agent):
     def _initialize(self) -> None:
         self.model = RecurrentPPO.load(self.file_path)
 
+    def _gdown(self) -> str:
+        data_path = os.path.join(
+            os.getcwd(), "checkpoints", "experiment", "rl_model_162000_steps.zip"
+        )
+        if not os.path.isfile(data_path):
+            print(f"Downloading {data_path}...")
+            # Place a link to your PUBLIC model data here. This is where we will download it from on the tournament server.
+            url = "https://drive.google.com/file/d/1BrD5DL3xe_LGq27bRnjftlXOqkB6gO6H/view?usp=sharing"
+            gdown.download(url, output=data_path, fuzzy=True)
+        return data_path
+
     def reset(self) -> None:
         self.episode_starts = True
 
