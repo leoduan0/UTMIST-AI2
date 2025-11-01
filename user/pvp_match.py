@@ -16,7 +16,7 @@ pygame.init()
 
 my_agent = UserInputAgent()
 
-steps = 160_016
+steps = 162_000
 
 # Input your file path here in SubmittedAgent if you are loading a model:
 opponent = SubmittedAgent(
