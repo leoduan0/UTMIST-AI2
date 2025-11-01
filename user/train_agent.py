@@ -17,7 +17,10 @@ import torch
 import gymnasium as gym
 from torch.nn import functional as F
 from torch import nn as nn
+
+# from torch.utils.tensorboard import SummaryWriter
 import numpy as np
+import os
 import pygame
 from stable_baselines3 import A2C, PPO, SAC, DQN, DDPG, TD3, HER
 from sb3_contrib import RecurrentPPO
@@ -35,6 +38,12 @@ else:
     torch.set_default_device("cpu")
 
 print(f"Using device {torch.get_default_device()}")
+
+run_name = "SB3_PPO_3"
+TENSORBOARD_LOG_DIR = os.path.join(os.getcwd(), "runs", run_name)
+
+# writer = SummaryWriter()
+
 
 # -------------------------------------------------------------------------
 # ----------------------------- AGENT CLASSES -----------------------------
@@ -67,7 +76,9 @@ class SB3Agent(Agent):
                 n_steps=30 * 90 * 3,
                 batch_size=128,
                 ent_coef=0.01,
+                tensorboard_log=TENSORBOARD_LOG_DIR,
             )
+
             del self.env
         else:
             self.model = self.sb3_class.load(self.file_path)
@@ -111,9 +122,9 @@ class RecurrentPPOAgent(Agent):
             policy_kwargs = {
                 "activation_fn": nn.ReLU,
                 "lstm_hidden_size": 512,
-                "net_arch": [dict(pi=[32, 32], vf=[32, 32])],
-                "shared_lstm": True,
-                "enable_critic_lstm": False,
+                "net_arch": [dict(pi=[256, 256], vf=[256, 256])],
+                "shared_lstm": False,
+                "enable_critic_lstm": True,
                 "share_features_extractor": True,
             }
             self.model = RecurrentPPO(
@@ -121,8 +132,9 @@ class RecurrentPPOAgent(Agent):
                 self.env,
                 verbose=0,
                 n_steps=30 * 90 * 20,
-                batch_size=16,
+                batch_size=64,
                 ent_coef=0.05,
+                tensorboard_log=TENSORBOARD_LOG_DIR,
                 policy_kwargs=policy_kwargs,
             )
             del self.env
@@ -645,7 +657,7 @@ if __name__ == "__main__":
     my_agent = CustomAgent(sb3_class=PPO, extractor=MLPExtractor)
 
     # Start here if you want to train from scratch. e.g:
-    # my_agent = RecurrentPPOAgent()
+    my_agent = RecurrentPPOAgent()
 
     # Start here if you want to train from a specific timestep. e.g:
     # my_agent = RecurrentPPOAgent(file_path='checkpoints/experiment_3/rl_model_120006_steps.zip')
@@ -653,26 +665,36 @@ if __name__ == "__main__":
     # Reward manager
     reward_manager = gen_reward_manager()
     # Self-play settings
-    selfplay_handler = SelfPlayRandom(
-        partial(type(my_agent)),  # Agent class and its keyword arguments
-        # type(my_agent) = Agent class
+    # selfplay_handler = SelfPlayRandom(
+    #     partial(type(my_agent)),  # Agent class and its keyword arguments
+    #     # type(my_agent) = Agent class
+    # )
+
+    self_play_random_handler = SelfPlayRandom(
+        partial(type(my_agent)),
+    )
+
+    self_play_latest_handler = SelfPlayLatest(
+        partial(type(my_agent)),
     )
 
     # Set save settings here:
     save_handler = SaveHandler(
         agent=my_agent,  # Agent to save
-        save_freq=100_000,  # Save frequency
-        max_saved=40,  # Maximum number of saved models
+        save_freq=10_000,  # Save frequency
+        max_saved=400,  # Maximum number of saved models
         save_path="checkpoints",  # Save path
-        run_name="experiment_9",
+        run_name="experiment",
         mode=SaveHandlerMode.FORCE,  # Save mode, FORCE or RESUME
     )
 
     # Set opponent settings here:
     opponent_specification = {
-        "self_play": (8, selfplay_handler),
-        "constant_agent": (0.5, partial(ConstantAgent)),
-        "based_agent": (1.5, partial(BasedAgent)),
+        # "self_play": (8, selfplay_handler),
+        # "constant_agent": (0.5, partial(ConstantAgent)),
+        "self_play_random": (2, self_play_random_handler),
+        "self_play_latest": (6, self_play_latest_handler),
+        "based_agent": (2, partial(BasedAgent)),
     }
     opponent_cfg = OpponentsCfg(opponents=opponent_specification)
 

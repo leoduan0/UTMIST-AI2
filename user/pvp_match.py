@@ -1,3 +1,4 @@
+import os
 from environment.environment import RenderMode, CameraResolution
 from environment.agent import run_real_time_match
 from user.train_agent import (
@@ -15,8 +16,14 @@ pygame.init()
 
 my_agent = UserInputAgent()
 
+steps = 160_016
+
 # Input your file path here in SubmittedAgent if you are loading a model:
-opponent = SubmittedAgent(file_path=None)
+opponent = SubmittedAgent(
+    file_path=os.path.join(
+        os.getcwd(), "checkpoints", "experiment", f"rl_model_{steps}_steps"
+    )
+)
 
 match_time = 99999
 

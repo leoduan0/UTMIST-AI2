@@ -4780,7 +4780,7 @@ class WeaponSpawner:
 
         if not pressed or not collided:
             return False
-        print(f"collided {w.name}, {pressed}, {collided}")
+        # print(f"collided {w.name}, {pressed}, {collided}")
         player.weapon = w.name  # kaden
         player.env.weapon_equip_signal.emit(
             agent="player" if player.agent_id == 0 else "opponent"
@@ -5096,7 +5096,7 @@ class DroppedWeaponSpawner(WeaponSpawner):
         if not pressed or not collided:
             return False
 
-        print(f"pickup {w.name}, {pressed}, {collided}")
+        # print(f"pickup {w.name}, {pressed}, {collided}")
         player.weapon = w.name  # kaden
         player.env.weapon_equip_signal.emit(
             agent="player" if player.agent_id == 0 else "opponent"
@@ -5179,9 +5179,9 @@ class DroppedWeaponSpawner(WeaponSpawner):
                     # prevent instant re-pickup from the same key press
                     player.pickup_lock_until = wb.steps + 15  # ~0.25s at 60fps; tweak
 
-                    print(
-                        f"[FRAME {wb.steps}] Player {idx} dropped '{current_weapon}' spawner at {pos} (id {new_id})."
-                    )
+                    # print(
+                    #     f"[FRAME {wb.steps}] Player {idx} dropped '{current_weapon}' spawner at {pos} (id {new_id})."
+                    # )
                     # kaden
                     # player loses weapon → back to Punch
                     player.weapon = "Punch"
